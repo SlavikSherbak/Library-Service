@@ -18,3 +18,14 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class LogoutView(GenericAPIView):
+    serializer_class = RefreshTokenSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, *args):
+        sz = self.get_serializer(data=request.data)
+        sz.is_valid(raise_exception=True)
+        sz.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
