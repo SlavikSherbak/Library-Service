@@ -3,20 +3,18 @@ from django.db import models
 
 
 class Book(models.Model):
-    HARD = "HA"
-    SOFT = "SO"
     COVER_CHOICES = [
-        (HARD, "Hard"),
-        (SOFT, "Soft"),
+        ("HARD", "Hard"),
+        ("SOFT", "Soft"),
     ]
     title = models.CharField(max_length=255, unique=True)
     author = models.CharField(max_length=255)
     cover = models.CharField(
-        max_length=2,
+        max_length=4,
         choices=COVER_CHOICES,
-        default=SOFT,
+        default="SOFT",
     )
-    inventory = models.IntegerField(validators=MinValueValidator(1))
+    inventory = models.IntegerField(validators=(MinValueValidator(1),))
     daily_fee = models.FloatField()
 
     class Meta:
