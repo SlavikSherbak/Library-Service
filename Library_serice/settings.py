@@ -137,8 +137,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Social media API",
-    "DESCRIPTION": "Create posts and follow your friends",
+    "TITLE": "Library site API",
+    "DESCRIPTION": "API for the local library",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SWAGGER_UI_SETTINGS": {
