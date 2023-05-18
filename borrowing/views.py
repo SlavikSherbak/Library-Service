@@ -24,20 +24,20 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         if user.is_staff:
             queryset = Borrowing.objects.all()
         else:
-            queryset = Borrowing.objects.filter(user_id=user)
+            queryset = Borrowing.objects.filter(user=user)
 
         is_active = self.request.query_params.get("is_active")
         if is_active:
             queryset = queryset.filter(actual_return_date__isnull=True)
 
-        user_id = self.request.query_params.get("user_id")
-        if user_id and self.request.user.is_staff:
-            queryset = queryset.filter(user_id=user_id)
+        user = self.request.query_params.get("user")
+        if user and self.request.user.is_staff:
+            queryset = queryset.filter(user=user)
 
         return queryset
 
     def get_serializer_class(self):
-        if self.action == "list" or self.action == "retrieve":
+        if self.action in ["list", "retrieve"]:
             return BorrowingDetailSerializer
         elif self.action == "create":
             return BorrowingCreateSerializer
@@ -46,18 +46,17 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         return BorrowingDetailSerializer
 
     def perform_create(self, serializer):
-        book_ids = serializer.validated_data["book_id"]
+        book = serializer.validated_data["book"]
         user = self.request.user
 
-        for book_id in book_ids:
-            book = get_object_or_404(Book, id=book_id.pk)
-            if book.inventory == 0:
-                raise serializers.ValidationError("Book is out of stock.")
+        book = get_object_or_404(Book, id=book.pk)
+        if book.inventory == 0:
+            raise serializers.ValidationError("Book is out of stock.")
 
-            book.inventory -= 1
-            book.save()
+        book.inventory -= 1
+        book.save()
 
-        serializer.save(user_id=user)
+        serializer.save(user=user)
 
     @action(detail=True, methods=["post"])
     def return_borrowing(self, request, pk=None):
@@ -69,9 +68,8 @@ class BorrowingViewSet(viewsets.ModelViewSet):
         borrowing.actual_return_date = timezone.now().date()
         borrowing.save()
 
-        book_ids = borrowing.book_id.values_list("id", flat=True)
-        books = Book.objects.filter(id__in=book_ids)
-        books.update(inventory=models.F("inventory") + 1)
+        book = Book.objects.filter(id=borrowing.book.pk)
+        book.update(inventory=models.F("inventory") + 1)
 
         serializer = self.get_serializer(borrowing)
         return Response(serializer.data, status=status.HTTP_200_OK)

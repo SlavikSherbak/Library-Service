@@ -6,7 +6,7 @@ class IsOwnerOrAdmin(BasePermission):
         if request.user.is_superuser:
             return True
 
-        if request.user.is_authenticated and obj.user_id == request.user:
+        if request.user.is_authenticated and obj.user == request.user:
             return True
 
         return False

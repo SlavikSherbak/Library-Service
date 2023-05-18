@@ -16,24 +16,28 @@ from borrowing.serializers import (
 
 class BorrowingModelTest(TestCase):
     def setUp(self):
+        self.book = Book.objects.create(title="Test Book", inventory=3, daily_fee=11.3)
         self.user = User.objects.create_user(email="test@test.com")
         self.borrowing1 = Borrowing.objects.create(
             borrow_date=date(2023, 5, 1),
             expected_return_date=date(2023, 5, 10),
             actual_return_date=None,
-            user_id=self.user,
+            user=self.user,
+            book=self.book,
         )
         self.borrowing2 = Borrowing.objects.create(
             borrow_date=date(2023, 4, 15),
             expected_return_date=date(2023, 4, 25),
             actual_return_date=None,
-            user_id=self.user,
+            user=self.user,
+            book=self.book,
         )
         self.borrowing3 = Borrowing.objects.create(
             borrow_date=date(2023, 6, 1),
             expected_return_date=date(2023, 6, 10),
             actual_return_date=None,
-            user_id=self.user,
+            user=self.user,
+            book=self.book,
         )
 
     def test_str_method(self):
@@ -55,11 +59,11 @@ class BorrowingViewSetTestCase(APITestCase):
         self.client.force_authenticate(user=self.user)
         self.book = Book.objects.create(title="Test Book", inventory=3, daily_fee=11.3)
         self.borrowing = Borrowing.objects.create(
-            user_id=self.user,
+            user=self.user,
             borrow_date=timezone.now().date(),
             expected_return_date=timezone.now().date(),
+            book=self.book,
         )
-        self.borrowing.book_id.set([self.book.id])
 
     def test_list_borrowings(self):
         url = reverse("borrowing:borrowing-list")
@@ -101,17 +105,17 @@ class BorrowingSerializerTestCase(TestCase):
         )
         self.book = Book.objects.create(title="Test Book", inventory=3, daily_fee=11.3)
         self.borrowing = Borrowing.objects.create(
-            user_id=self.user,
+            user=self.user,
             borrow_date=timezone.now().date(),
             expected_return_date=timezone.now().date(),
+            book=self.book,
         )
-        self.borrowing.book_id.set([self.book.id])
 
     def test_borrowing_detail_serializer(self):
         serializer = BorrowingDetailSerializer(self.borrowing)
         expected_data = {
             "id": self.borrowing.id,
-            "book_id": serializer.data.get("book_id"),
+            "book": serializer.data.get("book"),
             "borrow_date": serializer.data.get("borrow_date"),
             "expected_return_date": serializer.data.get("expected_return_date"),
             "actual_return_date": serializer.data.get("actual_return_date"),
@@ -123,16 +127,17 @@ class BorrowingSerializerTestCase(TestCase):
         expected_return_date = str(self.borrowing.expected_return_date)
         serializer = BorrowingCreateSerializer(
             data={
-                "book_id": [self.book.id],
+                "user": self.user.id,
+                "book": self.book.id,
                 "borrow_date": borrow_date,
                 "expected_return_date": expected_return_date,
             }
         )
         self.assertTrue(serializer.is_valid())
 
-        borrowing = serializer.save(user_id=self.user)
-        self.assertEqual(borrowing.user_id, self.user)
-        self.assertEqual(list(borrowing.book_id.all()), [self.book])
+        borrowing = serializer.save(user=self.user)
+        self.assertEqual(borrowing.user, self.user)
+        self.assertEqual(borrowing.book, self.book)
 
     def test_borrowing_return_serializer(self):
         serializer = BorrowingReturnSerializer(self.borrowing)
