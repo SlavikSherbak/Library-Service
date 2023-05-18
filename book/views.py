@@ -11,9 +11,9 @@ class BookListViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
 
     @staticmethod
-    def _params_to_ints(qs):
+    def _params_to_float(qs):
         """Converts a list of string IDs to a list of integers"""
-        return [int(str_id) for str_id in qs.split(",")]
+        return [float(str_id) for str_id in qs.split(",")]
 
     def get_queryset(self):
         """Retrieve the movies with filters"""
@@ -30,7 +30,7 @@ class BookListViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(author__icontains=authors)
 
         if daily_fee:
-            daily_fee_ids = self._params_to_ints(daily_fee)
+            daily_fee_ids = self._params_to_float(daily_fee)
             queryset = queryset.filter(daily_fee__in=daily_fee_ids)
 
         return queryset.distinct()
