@@ -36,9 +36,7 @@ class BookListViewSet(viewsets.ModelViewSet):
         return queryset.distinct()
 
     def get_permissions(self):
-        if self.action == "list":
-            permission_classes = (rest_framework.permissions.AllowAny,)
-        elif self.action == "retrieve":
+        if self.action in ["list", "retrieve"]:
             permission_classes = (rest_framework.permissions.AllowAny,)
         else:
             permission_classes = (rest_framework.permissions.IsAdminUser,)
