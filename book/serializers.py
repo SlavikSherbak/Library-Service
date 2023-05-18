@@ -9,6 +9,7 @@ class BookListSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "author",
             "inventory",
             "daily_fee",
         )
