@@ -58,7 +58,7 @@ class BorrowingViewSet(viewsets.ModelViewSet):
 
         serializer.save(user=user)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["post"], url_path="return")
     def return_borrowing(self, request, pk=None):
         borrowing = self.get_object()
 
